@@ -1,11 +1,15 @@
 #pragma once
 
+#include <cstdlib>
 #include "fstream"
 #include "iostream"
 #include "math.h"
 #include <stdlib.h>
 #include <time.h>
 #include <vector>
+
+#include <ros/ros.h>
+#include <std_msgs/Float32.h>
 
 class BinaryGA{
 /*
@@ -14,7 +18,7 @@ class BinaryGA{
     Available from https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/.
 */
     public:
-        BinaryGA(std::string filePath);
+        BinaryGA(std::string filePath, ros::NodeHandle *nh);
         ~BinaryGA();
         void splitParam(std::string line);
         void setInitPop();
@@ -35,4 +39,6 @@ class BinaryGA{
         int** pop_;
         double bestEval_;
         int* bestChrom_;
+
+        ros::Publisher pub_;
 };

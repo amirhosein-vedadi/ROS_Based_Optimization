@@ -1,10 +1,14 @@
-#include "../include/optimization/BinaryGA.h"
+//#include "../include/optimization/BinaryGA.h"
+#include "BinaryGA.h"
+BinaryGA::BinaryGA(std::string file_path, ros::NodeHandle *nh){
 
-BinaryGA::BinaryGA(std::string file_path){
+    pub_ = nh->advertise<std_msgs::Float32>("/best_eval", 10); 
+
     //Read and split optimization parameters from file
     std::fstream file(file_path, std::fstream::in);
     if (!file.is_open()){
         std::cerr << "Error opening file" << std::endl;
+        abort();
     }
     std::string line;
     while (std::getline(file, line)){
@@ -103,6 +107,7 @@ void BinaryGA::mutation(int* p){
 void BinaryGA::run(){
     this->setInitPop();
     int child[nPop_][nBits_];
+    ros::Rate loop_rate(1);
     bestChrom_ = new int[nBits_];
     for (int k = 0; k < nBits_; ++k)
         bestChrom_[k] = pop_[0][k];
@@ -139,8 +144,12 @@ void BinaryGA::run(){
                 pop_[j][k] = child[j][k];
             }
         }
+        loop_rate.sleep();
+        std_msgs::Float32 new_msg;
+        new_msg.data = bestEval_;
+        pub_.publish(new_msg);
+        
     }
-    std::cout << bestEval_ << std::endl;;
 }
 
 BinaryGA::~BinaryGA(){
@@ -148,12 +157,21 @@ BinaryGA::~BinaryGA(){
         delete[] pop_[i];
     }
     delete[] pop_;
+    delete[] bestChrom_;
 }
 
-int main(){
-    BinaryGA alg("GAInput.txt");
+int main(int argc, char* argv[])
+{
+    ros::init(argc, argv, "optimization_node");
+    ros::NodeHandle nh;
+    BinaryGA alg("/home/amirhosein/Amirhosein/Programming/Optimization/ROSBasdeOptimization/src/optimization/src/GAInput.txt", &nh);
     alg.run();
-    double r = ((double) rand() / (RAND_MAX));
+    ros::spin();
+}
+
+// int main(){
+//     BinaryGA alg("GAInput.txt");
+//     alg.run();
     //std::cout << r << std::endl;
     // for(int i=0; i < nBits_; i++)
     //     std::cout << child[0][i];
@@ -161,4 +179,4 @@ int main(){
     // this->mutation(child[0]);
     // for(int i=0; i < nBits_; i++)
     //     std::cout << child[0][i];
-}
+// }
