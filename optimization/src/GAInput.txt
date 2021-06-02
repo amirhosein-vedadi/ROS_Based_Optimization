@@ -1,0 +1,5 @@
+n-iter=100
+n-bits=20
+n-pop=10
+r-cross=0.9
+r-mut=0.05
