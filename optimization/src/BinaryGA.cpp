@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "optimization_node");
     ros::NodeHandle nh;
-    BinaryGA alg("/home/amirhosein/Amirhosein/Programming/Optimization/ROSBasdeOptimization/src/optimization/src/GAInput.txt", &nh);
+    BinaryGA alg(argv[1], &nh);
     alg.run();
     ros::spin();
 }
