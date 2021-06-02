@@ -15,7 +15,14 @@ class BinaryGA{
 */
     public:
         BinaryGA(std::string filePath);
+        ~BinaryGA();
         void splitParam(std::string line);
+        void setInitPop();
+        void run();
+        double objective(int chrom[]);
+        int selection(double* scores, int k);
+        void crossover(int* p1, int* p2);
+        void mutation(int* p);
 
 
     private:
@@ -25,5 +32,7 @@ class BinaryGA{
         int nPop_;
         double rCross_;
         double rMut_;
-
+        int** pop_;
+        double bestEval_;
+        int* bestChrom_;
 };
