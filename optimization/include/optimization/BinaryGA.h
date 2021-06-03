@@ -10,6 +10,7 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include "eval_funcs/objective.h"
 
 class BinaryGA{
 /*
@@ -41,4 +42,5 @@ class BinaryGA{
         int* bestChrom_;
 
         ros::Publisher pub_;
+        ros::ServiceClient client_;
 };

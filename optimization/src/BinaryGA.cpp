@@ -3,6 +3,7 @@
 BinaryGA::BinaryGA(std::string file_path, ros::NodeHandle *nh){
 
     pub_ = nh->advertise<std_msgs::Float32>("/best_eval", 10); 
+    client_ = nh->serviceClient<eval_funcs::objective>("objective");
 
     //Read and split optimization parameters from file
     std::fstream file(file_path, std::fstream::in);
@@ -66,12 +67,12 @@ int BinaryGA::selection(double* scores, int k=3){
     return selected_idx;
 }
 
-double BinaryGA::objective(int chrom[]){
-    double sum = 0;
-    for (int i = 0; i < nBits_; ++i)
-        sum += chrom[i];
-    return -sum;
-}
+// double BinaryGA::objective(int chrom[]){
+//     double sum = 0;
+//     for (int i = 0; i < nBits_; ++i)
+//         sum += chrom[i];
+//     return -sum;
+// }
 
 void BinaryGA::crossover(int* p1, int* p2){
 /*
@@ -108,16 +109,37 @@ void BinaryGA::run(){
     this->setInitPop();
     int child[nPop_][nBits_];
     ros::Rate loop_rate(1);
+    eval_funcs::objective srv;
     bestChrom_ = new int[nBits_];
-    for (int k = 0; k < nBits_; ++k)
+    //srv.request.chrom.resize[nBits_];
+    for (int k = 0; k < nBits_; ++k){
         bestChrom_[k] = pop_[0][k];
-    bestEval_ = this->objective(pop_[0]);
+        srv.request.chrom.push_back(pop_[0][k]);
+    }
+    if(client_.call(srv)){
+        bestEval_ = srv.response.eval;
+        ROS_INFO("eval: %f", (double)srv.response.eval);
+    }else
+    {
+        ROS_ERROR("Failed to call service add_two_ints");
+        abort();
+    }
 
     for (int gen_idx = 0; gen_idx < nIter_; ++gen_idx){
         //evaluate population scores
         double scores[nPop_];
         for (int i = 0; i < nPop_; ++i){
-            scores[i] = this->objective(pop_[i]);
+            for (int k = 0; k < nBits_; ++k){
+                srv.request.chrom[k] = pop_[i][k];
+            }
+            if(client_.call(srv)){
+                ROS_INFO("eval: %f", (double)srv.response.eval);
+                scores[i] = srv.response.eval;
+            }else
+            {
+                ROS_ERROR("Failed to call service add_two_ints");
+                abort();
+            }
             if (scores[i] < bestEval_)
             {
                 bestEval_ = scores[i];
