@@ -7,7 +7,6 @@ bool objective(eval_funcs::objective::Request  &req,
     res.eval = 0;
     for(int i=0; i<req.chrom.size(); i++)
         res.eval -= req.chrom[i];
-    ROS_INFO("sending back response: [%f]", (double)res.eval);
     return true;
 }
 
@@ -17,7 +16,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
 
     ros::ServiceServer service = n.advertiseService("objective", objective);
-    ROS_INFO("Ready to add two ints.");
+    ROS_INFO("Ready to evaluate optimization cost.");
     ros::spin();
 
     return 0;

@@ -67,12 +67,22 @@ int BinaryGA::selection(double* scores, int k=3){
     return selected_idx;
 }
 
-// double BinaryGA::objective(int chrom[]){
-//     double sum = 0;
-//     for (int i = 0; i < nBits_; ++i)
-//         sum += chrom[i];
-//     return -sum;
-// }
+double BinaryGA::objective(int chrom[]){
+    eval_funcs::objective srv;
+    srv.request.chrom.resize(nBits_);
+    double obj;
+    for (int k = 0; k < nBits_; ++k)
+        srv.request.chrom[k] = chrom[k];
+    if(client_.call(srv)){
+        obj = srv.response.eval;
+        //ROS_INFO("eval: %f", (double)srv.response.eval);
+    }else
+    {
+        ROS_ERROR("Failed to call service objective.");
+        abort();
+    }
+    return obj;
+}
 
 void BinaryGA::crossover(int* p1, int* p2){
 /*
@@ -108,38 +118,19 @@ void BinaryGA::mutation(int* p){
 void BinaryGA::run(){
     this->setInitPop();
     int child[nPop_][nBits_];
-    ros::Rate loop_rate(1);
-    eval_funcs::objective srv;
+    ros::Rate loop_rate(5);
     bestChrom_ = new int[nBits_];
-    //srv.request.chrom.resize[nBits_];
-    for (int k = 0; k < nBits_; ++k){
+    for (int k = 0; k < nBits_; ++k)
         bestChrom_[k] = pop_[0][k];
-        srv.request.chrom.push_back(pop_[0][k]);
-    }
-    if(client_.call(srv)){
-        bestEval_ = srv.response.eval;
-        ROS_INFO("eval: %f", (double)srv.response.eval);
-    }else
-    {
-        ROS_ERROR("Failed to call service add_two_ints");
-        abort();
-    }
+    
+    bestEval_ = this->objective(bestChrom_);
 
     for (int gen_idx = 0; gen_idx < nIter_; ++gen_idx){
         //evaluate population scores
         double scores[nPop_];
         for (int i = 0; i < nPop_; ++i){
-            for (int k = 0; k < nBits_; ++k){
-                srv.request.chrom[k] = pop_[i][k];
-            }
-            if(client_.call(srv)){
-                ROS_INFO("eval: %f", (double)srv.response.eval);
-                scores[i] = srv.response.eval;
-            }else
-            {
-                ROS_ERROR("Failed to call service add_two_ints");
-                abort();
-            }
+            scores[i] = this->objective(pop_[i]);
+
             if (scores[i] < bestEval_)
             {
                 bestEval_ = scores[i];
@@ -190,15 +181,3 @@ int main(int argc, char* argv[])
     alg.run();
     ros::spin();
 }
-
-// int main(){
-//     BinaryGA alg("GAInput.txt");
-//     alg.run();
-    //std::cout << r << std::endl;
-    // for(int i=0; i < nBits_; i++)
-    //     std::cout << child[0][i];
-    // std::cout << std::endl;
-    // this->mutation(child[0]);
-    // for(int i=0; i < nBits_; i++)
-    //     std::cout << child[0][i];
-// }
