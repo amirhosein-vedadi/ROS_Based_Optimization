@@ -118,7 +118,7 @@ void BinaryGA::mutation(int* p){
 void BinaryGA::run(){
     this->setInitPop();
     int child[nPop_][nBits_];
-    ros::Rate loop_rate(5);
+    ros::Rate loop_rate(1);
     bestChrom_ = new int[nBits_];
     for (int k = 0; k < nBits_; ++k)
         bestChrom_[k] = pop_[0][k];
